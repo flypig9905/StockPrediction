@@ -129,9 +129,7 @@ n_windows = 490
 windows = range(n_windows)
 # 5: there are five data for each day, namely, O, MA, MI, C, V
 # 16: the start of day 4
-# 47: the end of day 9, which makes the total time span as 5 days
-# attention: the size feature size is 31, need more investigation!!!!!!!!
-
+# 47: the end of day 9, which makes the total time span as 5 days, plus the O for day 10
 
 X_windows = [train[:,range(16 + 5*w, 47 + 5*w)] for w in windows]
 X_windows_normalized = [normalize10day(w) for w in X_windows]
@@ -142,6 +140,8 @@ X = np.vstack(X_windows_normalized)
 #X = X_stockdata
 
 # read in the response variable
+# 46: O starting from day 10
+# 49: C starting from day 10
 y_stockdata = np.vstack([train[:, [46 + 5*w, 49 + 5*w]] for w in windows])
 y = (y_stockdata[:,1] - y_stockdata[:,0] > 0) + 0
 
