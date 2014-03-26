@@ -143,12 +143,14 @@ X = np.vstack(X_windows_normalized)
 # 46: O starting from day 10
 # 49: C starting from day 10
 y_stockdata = np.vstack([train[:, [46 + 5*w, 49 + 5*w]] for w in windows])
-y = (y_stockdata[:,1] - y_stockdata[:,0] > 0) + 0
+
+# if C>0, then it is positive label
+y = (y_stockdata[:,1] - y_stockdata[:,0] > 0) + 0   # True + 0 = 1; False + 0 = 0
 
 
 X_test = X_test[:,[0, 3, 5, 8, 10, 13, 15, 18, 20, 23, 25, 28, 30]]
 X = X[:,[0, 3, 5, 8, 10, 13, 15, 18, 20, 23, 25, 28, 30]]
-print "this step done"
+print "data preparation done"
 
 # <codecell>
 
