@@ -118,10 +118,6 @@ test = np.array(p.read_table('./test.csv', sep = ","))
 # 17-48 means the opening 4 to opening 9, information in 5 days
 X_test = normalize10day(test[:,range(17, 48)]) # load in test data
 
-#X_test = X_test_stockdata
-
-#np.identity(94)[:,range(93)]
-
 ################################################################################
 # READ IN THE TRAIN DATA
 ################################################################################
@@ -129,7 +125,7 @@ n_windows = 490
 windows = range(n_windows)
 # 5: there are five data for each day, namely, O, MA, MI, C, V
 # 16: the start of day 4
-# 47: the end of day 9, which makes the total time span as 5 days, plus the O for day 10
+# 47: the end of day 9, which makes the total time span as 6 days, plus the O for day 10
 
 X_windows = [train[:,range(16 + 5*w, 47 + 5*w)] for w in windows]
 X_windows_normalized = [normalize10day(w) for w in X_windows]
@@ -147,7 +143,7 @@ y_stockdata = np.vstack([train[:, [46 + 5*w, 49 + 5*w]] for w in windows])
 # if C>0, then it is positive label
 y = (y_stockdata[:,1] - y_stockdata[:,0] > 0) + 0   # True + 0 = 1; False + 0 = 0
 
-
+# solely using the O and C feature
 X_test = X_test[:,[0, 3, 5, 8, 10, 13, 15, 18, 20, 23, 25, 28, 30]]
 X = X[:,[0, 3, 5, 8, 10, 13, 15, 18, 20, 23, 25, 28, 30]]
 print "data preparation done"
@@ -161,12 +157,13 @@ model_randomforest = RandomForestClassifier(n_estimators = 200)
 pred_ridge = []
 pred_randomforest = []
 new_Y = []
-for i in range(10):
-    indxs = np.arange(i, X.shape[0], 10)
-    indxs_to_fit = list(set(range(X.shape[0])) - set(np.arange(i, X.shape[0], 10)))
-    pred_ridge = pred_ridge + list(model_ridge.fit(X[indxs_to_fit,:], y[indxs_to_fit,:]).predict_proba(X[indxs,:])[:,1])
+fold_num = 2
+for i in range(fold_num):
+    indxs = np.arange(i, X.shape[0], fold_num)    # select 1 for every 10 item
+    indxs_to_fit = list(set(range(X.shape[0])) - set(np.arange(i, X.shape[0], fold_num))) # use list difference to compute the current training index
+    pred_ridge = pred_ridge + list(model_ridge.fit(X[indxs_to_fit,:], y[indxs_to_fit,:]).predict_proba(X[indxs,:])[:,1]) # [:,1] means select the prob of predicting 1
     pred_randomforest = pred_randomforest + list(model_randomforest.fit(X[indxs_to_fit,:], y[indxs_to_fit,:]).predict_proba(X[indxs,:])[:,1])                               
-    new_Y = new_Y + list(y[indxs,:])
+    new_Y = new_Y + list(y[indxs,:])    # new_Y is re-arranged Y based on the test index
                                                                    
 new_X = np.hstack((np.array(pred_ridge).reshape(len(pred_ridge), 1), np.array(pred_randomforest).reshape(len(pred_randomforest), 1)))
 print new_X
@@ -191,7 +188,7 @@ new_X_test = np.hstack((np.array(pred_ridge_test).reshape(len(pred_ridge_test), 
 # <codecell>
 
 pred = model_stacker.predict_proba(new_X_test)[:,1]
-testfile = p.read_csv('./test.csv', sep=",", na_values=['?'], index_col=[0,1])
+testfile = p.read_csv('./test.csv', sep=",", na_values=['?'], index_col=[0,1])  # here, define .index field to be the first 2 columns
 
 # submit as D multiplied by 100 + stock id
 testindices = [100 * D + StId for (D, StId) in testfile.index]
