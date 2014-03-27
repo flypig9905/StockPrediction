@@ -164,18 +164,24 @@ for i in range(fold_num):
     pred_ridge = pred_ridge + list(model_ridge.fit(X[indxs_to_fit,:], y[indxs_to_fit,:]).predict_proba(X[indxs,:])[:,1]) # [:,1] means select the prob of predicting 1
     pred_randomforest = pred_randomforest + list(model_randomforest.fit(X[indxs_to_fit,:], y[indxs_to_fit,:]).predict_proba(X[indxs,:])[:,1])                               
     new_Y = new_Y + list(y[indxs,:])    # new_Y is re-arranged Y based on the test index
-                                                                   
+
+''' stack feature '''
+# new_X is the new feature that consist the prob prediction from ridge and random forest                              
 new_X = np.hstack((np.array(pred_ridge).reshape(len(pred_ridge), 1), np.array(pred_randomforest).reshape(len(pred_randomforest), 1)))
 print new_X
 new_Y = np.array(new_Y).reshape(len(new_Y), 1)
 
-# <codecell>
-
+# logistic regression on new feature
 model_stacker = lm.LogisticRegression()
+# both feature
 print np.mean(cross_validation.cross_val_score(model_stacker, new_X, new_Y.reshape(new_Y.shape[0]), cv=5, scoring = auc_scorer))
+# ridge only
+print np.mean(cross_validation.cross_val_score(model_stacker, new_X[:,0].reshape(new_X.shape[0],1), new_Y.reshape(new_Y.shape[0]), cv=5, scoring = auc_scorer))
+# random forest only
+print np.mean(cross_validation.cross_val_score(model_stacker, new_X[:,1].reshape(new_X.shape[0],1), new_Y.reshape(new_Y.shape[0]), cv=5, scoring = auc_scorer))
 
-# <codecell>
 
+''' train model and prediction '''
 model_stacker.fit(new_X, new_Y.reshape(new_Y.shape[0]))
 
 print "prediction"
