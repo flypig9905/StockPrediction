@@ -103,6 +103,8 @@ for curr_portion in portion:
             curr_test = np.vstack((curr_test, temp))
             curr_y_test = np.vstack((curr_y_test, temp_y))
     
+    # need to do normalization
+    
     print curr_train.shape, curr_y_train.shape
     print curr_test.shape, curr_y_test.shape
     
